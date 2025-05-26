@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>ESP32 Конфигурация</title>
+  <style>
+      body {
+          font-family: sans-serif;
+          padding: 20px;
+          background-color: #f4f4f4;
+      }
+
+      h2 {
+          background: #444;
+          color: white;
+          padding: 10px;
+          margin: 0;
+      }
+
+      .section {
+          background: white;
+          padding: 15px;
+          border-radius: 5px;
+      }
+
+      label {
+          display: block;
+          margin: 10px 0 5px;
+      }
+
+      input,
+      select,
+      button {
+          padding: 5px;
+          font-size: 14px;
+          width: 100%;
+          max-width: 200px;
+          margin-bottom: 10px;
+      }
+
+      input[type="checkbox"] {
+          width: auto;
+      }
+
+      input[type="color"] {
+          width: 50px;
+          height: 30px;
+          border: none;
+          padding: 0;
+          margin: 0;
+      }
+
+      table {
+          border-collapse: collapse;
+          margin-bottom: 10px;
+      }
+
+      th,
+      td {
+          border: 1px solid #ccc;
+          padding: 6px;
+          text-align: left;
+      }
+
+      #actionSelect {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 20px;
+      }
+
+      #actionSelect label {
+          display: flex;
+          align-items: center;
+      }
+
+      td select,
+      td input {
+          width: 100%;
+          margin: 0;
+          box-sizing: border-box;
+      }
+
+      tr td {
+          padding: 0;
+      }
+
+      tr td.btnIndex {
+          width: 20px;
+          padding: 5px;
+      }
+
+      tr td.btnToDo {
+          width: 80px;
+          padding: 5px 10px;
+      }
+
+      .layout-preview {
+          position: relative;
+          width: 400px;
+          height: 600px;
+          background: #f0f0f0;
+          border: 1px solid #aaa;
+          margin-top: 15px;
+          border-radius: 5px;
+      }
+
+      .layout-preview.hidden {
+          display: none;
+      }
+
+      .layout-element {
+          position: absolute;
+          box-sizing: border-box;
+          background: #ccc;
+          border-radius: 5px;
+      }
+
+      .layout-button {
+          cursor: pointer;
+          transition: outline 0.2s, transform 0.2s;
+      }
+
+      .layout-button:hover {
+          transform: scale(1.05);
+          z-index: 10;
+      }
+
+      .layout_editor {
+          display: none;
+          margin-top: 10px;
+      }
+
+      .layout_editor.active {
+          display: block;
+      }
+
+      .layout-edit-btn {
+          position: absolute;
+          top: 65px;
+          right: 5px;
+          z-index: 20;
+          background: #444;
+          color: white;
+          border: none;
+          padding: 5px 10px;
+          font-size: 12px;
+          border-radius: 3px;
+          cursor: pointer;
+          opacity: 0.8;
+      }
+
+      .layout-edit-btn:hover {
+          opacity: 1;
+      }
+
+      .bnt_wrapper {
+          display: flex;
+          gap: 20px;
+      }
+
+      #layout-section {
+          position: relative;
+      }
+
+      .section .section_body {
+          max-height: 0;
+          overflow: hidden;
+          transition: max-height 0.3s linear;
+      }
+
+      .section .section_body.open {
+          max-height: 2000px;
+          transition: max-height 0.3s linear;
+      }
+
+      .section h2 {
+          cursor: pointer;
+          transition: background 0.3s;
+      }
+
+      .section h2:hover {
+          background: #999;
+      }
+
+      .section h2:after {
+          content: ' ▼';
+          font-size: 0.8em;
+          color: #666;
+          transition: transform 0.3s;
+          float: right;
+      }
+
+      .section.open h2:after {
+          transform: rotate(180deg);
+      }
+
+      #msg_wrapper {
+          position: absolute;
+          display: flex;
+          top: 10px;
+          right: 50%;
+          transform: translateX(50%);
+          z-index: 1000;
+          width: 250px;
+      }
+
+      .alert_message {
+          background: #fff6db;
+          color: #bb7300;
+          padding: 10px;
+          border-radius: 5px;
+          margin-bottom: 10px;
+          font-size: 14px;
+          width: 100%;
+          text-align: center;
+          transition: opacity 0.3s ease-in-out;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+  </style>
+</head>
+
+<body>
+<h1>Настройки ESP32</h1>
+<datalist id="color_list">
+  <!-- Основные чистые цвета -->
+  <option>#ff0000</option> <!-- Красный -->
+  <option>#00ff00</option> <!-- Зелёный -->
+  <option>#0000ff</option> <!-- Синий -->
+  <option>#ffff00</option> <!-- Жёлтый -->
+  <option>#00ffff</option> <!-- Голубой -->
+  <option>#ff00ff</option> <!-- Пурпурный -->
+  <option>#ffffff</option> <!-- Белый -->
+
+  <!-- Дополнительные яркие -->
+  <option>#ff8000</option> <!-- Оранжевый -->
+  <option>#ff0080</option> <!-- Розовый -->
+  <option>#80ff00</option> <!-- Ярко-салатовый -->
+  <option>#00ff80</option> <!-- Мятный -->
+  <option>#0080ff</option> <!-- Небесно-синий -->
+  <option>#8000ff</option> <!-- Фиолетовый -->
+  <option>#ff0040</option> <!-- Малиновый -->
+
+  <!-- Темные насыщенные оттенки для контраста -->
+  <option>#800000</option> <!-- Тёмно-красный -->
+  <option>#008000</option> <!-- Тёмно-зелёный -->
+  <option>#000080</option> <!-- Тёмно-синий -->
+</datalist>
+
+<div id="msg_wrapper">
+</div>
+<div class="section" id="wifi-section">
+  <h2><a href="/wifi.bin" target="_blank">Wi-Fi</a></h2>
+  <div class="section_body">
+    <label for="ssid">SSID</label>
+    <input type="text" id="ssid">
+    <label for="password">Пароль</label>
+    <input type="text" id="password">
+    <label for="mode">Режим</label>
+    <select id="mode">
+      <option value="0">STA</option>
+      <option value="1">AP</option>
+    </select>
+    <button onclick="saveWiFi()">Сохранить Wi-Fi</button>
+  </div>
+</div>
+
+<div class="section" id="buttons-section">
+  <h2><a href="/config.bin" target="_blank">Кнопки</a> и <a href="/color.bin" target="_blank">цвета</a></h2>
+  <div class="section_body open">
+    <div id="colorSelect">
+      <input name="index" value="0" id="colorInput" type="number" min="0" max="255"/>
+      <input name="color" value="#FF8800" type="color" list="color_list" id="colorInputColor"/>
+      <button onclick="testColor()">Test</button>
+    </div>
+
+    <label for="layerSelect">Слой:</label>
+    <select id="layerSelect" onchange="renderButtonConfig()"></select>
+    <div class="bnt_wrapper">
+      <div id="actionsContainer">
+        <h3>Действия:</h3>
+        <div id="actionSelect"></div>
+        <div id="buttonsTableContainer"></div>
+        <button onclick="saveButtons()">Сохранить кнопки</button>
+      </div>
+
+      <div id="layout-section">
+        <h3>Визуальное расположение кнопок</h3>
+        <div id="layoutPreview" class="layout-preview"></div>
+        <button class="layout-edit-btn" onclick="showLayoutEditor()">Изменить</button>
+        <div class="layout_editor" id="layoutEditor">
+          <textarea id="layoutText" rows="5" style="width:100%; font-family:monospace;"></textarea>
+          <button onclick="saveLayout(true)">Сохранить схему + применить</button>
+          <button onclick="cancelLayout()">Отмена</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="section" id="ir-section">
+  <h2>IR-коды</h2>
+  <div class="section_body">
+    <table id="irTable">
+      <thead>
+      <tr>
+        <th>#</th>
+        <th>Слот</th>
+        <th>Имя</th>
+        <th>Частота</th>
+        <th>Код</th>
+        <th colspan="4">Действия</th>
+      </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <button onclick="addIRCode()">Добавить IR-код</button>
+  </div>
+</div>
+
+<div class="section" id="scripts-section">
+  <h2>Скрипты</h2>
+  <div class="section_body">
+    <div>
+      <label for="scriptList">Список скриптов:</label>
+      <select id="scriptList" onchange="loadScriptEditor()">
+        <option value="">-- Выберите скрипт --</option>
+      </select>
+      <button onclick="downloadScript()">↓ Скачать</button>
+      <button onclick="deleteScript()">✖ Удалить</button>
+    </div>
+
+    <div style="margin-top:10px">
+      <label for="scriptName">Название скрипта:</label>
+      <input type="text" id="scriptName" placeholder="например, скрипт 1">
+
+      <label for="scriptName">ID скрипта:</label>
+      <input type="number" id="scriptId" placeholder="например, 5"/>
+
+      <table style="margin-top:10px" id="scriptTable">
+        <thead>
+        <tr>
+          <th style="width:80px">Тип</th>
+          <th colspan="2">Значение</th>
+          <th style="width:160px" colspan="3"></th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <button onclick="addScriptLine()">+ Добавить строку</button>
+      <button onclick="saveScript()">✔ Сохранить скрипт</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let buttonsConfig = [];
+  let layerCount = 0;
+  let irCodes = [];
+  let availableActions = [];
+  let scriptList = [];
+  let scriptCode = []
+
+  const freqList = [17, 22, 24, 36, 38, 44, 48];
+  const mouseCodes = [
+    ["Нет", 0],
+    ["MOUSE_LEFT", 1],
+    ["MOUSE_RIGHT", 2],
+    ["MOUSE_MIDDLE", 4],
+    ["MOUSE_BACK", 8],
+    ["MOUSE_FORWARD", 16]
+  ];
+
+  let keyboardCodes = [];
+  let mediaCodes = [];
+
+  const actionTypes = ["click", "double", 'release', "hold", "holdRepeat", "holdRelease", "oneClickHold"];
+  // title, value, has custom, show (0 - all, 1 - script, 2 - default), наличие 2-го параметра
+  const targetTypes = [
+    ["НЕТ", 0, false, 2, false],
+    ["Задержка", 0, false, 1, false],
+    ["Клавиатура", 1, true, 0, true],
+    ["Медиа", 10, false, 0, false],
+    ["Мышь клик", 2, true, 0, true],
+    ["Мышь движение", 7, false, 0, true],
+    ["Слой", 5, false, 0, false],
+    ["IR", 4, false, 0, false],
+    ["Функция", 6, false, 0, false],
+    ["Скрипт", 9, false, 2, false]
+  ];
+  let actionSelected = ['click'];
+
+  const isMockMode = location.hostname === 'localhost';
+
+  async function apiFetch(url, options = {}) {
+    if (isMockMode && options.method !== 'POST') {
+      return fetch('/mock' + url.replace('/api', '') + '.json');
+    }
+    return fetch(url, options);
+  }
+
+  function alert_message(msg) {
+    const root_el = document.getElementById('msg_wrapper')
+    const msg_el = document.createElement('div');
+    msg_el.innerText = msg;
+    msg_el.className = 'alert_message';
+
+    root_el.appendChild(msg_el)
+    setTimeout(() => {
+      root_el.removeChild(msg_el);
+    }, 3000);
+  }
+
+  ///////////////////////// LAYOUT /////////////////////////
+
+  let layoutTextBackup = '';
+  let layoutData = [];
+
+  function showLayoutEditor() {
+    layoutTextBackup = document.getElementById('layoutText').value;
+    document.getElementById('layoutEditor').classList.add('active');
+    document.getElementById('layoutPreview').classList.add('hidden');
+    document.getElementsByClassName('layout-edit-btn')[0].style.display = 'none';
+    document.getElementById('layoutText').focus();
+  }
+
+  function cancelLayout() {
+    document.getElementById('layoutEditor').classList.remove('active');
+    document.getElementById('layoutPreview').classList.remove('hidden');
+    document.getElementsByClassName('layout-edit-btn')[0].style.display = 'block';
+    document.getElementById('layoutText').value = layoutTextBackup;
+  }
+
+  function saveLayout(apply = false) {
+    const value = document.getElementById('layoutText').value;
+    apiFetch('/api/layout', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: encodeURIComponent(value)
+    }).then(() => {
+      if (apply) {
+        renderLayout();
+      }
+      document.getElementById('layoutEditor').classList.remove('active');
+      document.getElementById('layoutPreview').classList.remove('hidden');
+      document.getElementsByClassName('layout-edit-btn')[0].style.display = 'block';
+      alert_message('Схема сохранена');
+    });
+  }
+
+  function renderLayout() {
+    const container = document.getElementById('layoutPreview');
+    container.innerHTML = '';
+    const lines = document.getElementById('layoutText').value.trim().split('\n');
+    layoutData = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const parts = lines[i].split(':');
+      if (parts.length < 7) continue;
+
+      const [x, y, type, w, h, key, color] = parts;
+      const div = document.createElement('div');
+      div.classList.add('layout-element');
+      div.dataset.index = i;
+      div.dataset.key = key;
+      div.style.left = `${parseInt(x)}px`;
+      div.style.top = `${parseInt(y)}px`;
+      div.style.width = `${parseInt(w)}px`;
+      div.style.height = `${parseInt(h)}px`;
+      div.style.borderRadius = type === 'круг' ? '50%' : '5px';
+      div.style.border = '1px solid #333';
+
+      let finalColor = color || '#ccc';
+      if (key !== 'none' && !isNaN(parseInt(key))) {
+        const k = parseInt(key);
+        const currentLayer = parseInt(document.getElementById('layerSelect').value);
+        const button = buttonsConfig[currentLayer]?.[k];
+        if (button && button.color) {
+          finalColor = typeof button.color === 'string' && button.color.startsWith('#')
+            ? button.color
+            : '#' + ('000000' + button.color.toString(16)).slice(-6);
+        }
+
+        div.onmouseenter = () => highlightTableRow(key, true);
+        div.onmouseleave = () => highlightTableRow(key, false);
+        div.onclick = () => {
+          document.querySelector('input[type="checkbox"].btnCheckbox[btnIndex="' + key + '"]').click()
+        };
+
+        div.classList.add('layout-button');
+
+        const label = document.createElement('div');
+        label.innerText = key;
+        label.style.color = '#000';
+        label.style.fontSize = '12px';
+        label.style.textAlign = 'center';
+        label.style.lineHeight = `${parseInt(h)}px`;
+        label.style.pointerEvents = 'none';
+        div.appendChild(label);
+      }
+
+      div.style.background = finalColor;
+
+      container.appendChild(div);
+      layoutData.push({x, y, w, h, key});
+    }
+  }
+
+  function highlightTableRow(key, highlight) {
+    const rows = document.querySelectorAll('#buttonsTableContainer table tr');
+    rows.forEach(row => {
+      if (row.firstChild && row.firstChild.innerText == key) {
+        row.style.backgroundColor = highlight ? '#ffeeba' : '';
+      }
+    });
+
+    const elements = document.querySelectorAll('#layoutPreview .layout-button');
+    elements.forEach(el => {
+      if (el.dataset.key == key) {
+        el.style.outline = highlight ? '3px solid red' : '';
+      }
+    });
+  }
+
+  async function loadLayout() {
+    try {
+      const layoutRes = await apiFetch('/api/layout');
+      const layoutText = await layoutRes.text();
+      document.getElementById('layoutText').value = layoutText;
+      renderLayout();
+      document.getElementById('layoutText').addEventListener('input', renderLayout);
+    } catch (e) {
+      console.warn("Не удалось загрузить layout");
+    }
+  }
+
+  function updateLayoutButtonColor(layer, btnIndex, color) {
+    const layoutButtons = document.querySelectorAll('.layout-button');
+    layoutButtons.forEach(btn => {
+      if (btn.dataset.key === String(btnIndex)) {
+        btn.style.backgroundColor = color;
+      }
+    });
+  }
+
+  //////////////////////// LAYOUT end ////////////////////////
+
+
+  //////////////////////// SCRIPTS ////////////////////////
+  async function fetchScriptsList() {
+    const res = await apiFetch('/api/scripts');
+    // get text from response
+    const text = await res.text();
+    scriptList = JSON.parse(text.replace('\n', '').replace('\r', ''));
+    const select = document.getElementById('scriptList');
+    select.innerHTML = '<option value="">-- Выберите скрипт --</option>';
+    scriptList.forEach(script => {
+      const opt = document.createElement('option');
+      opt.value = script.id;
+      opt.innerText = script.name + ' (' + script.id + ')';
+      select.appendChild(opt);
+    });
+  }
+
+  function renderScriptTable() {
+    const tbody = document.querySelector('#scriptTable tbody');
+    tbody.innerHTML = '';
+    for (const index in scriptCode) {
+      let line_index = parseInt(index);
+      const line = scriptCode[line_index];
+      const tr = document.createElement('tr');
+      for (const el of getControl(line, true)) {
+        tr.appendChild(el);
+      }
+
+      const upTd = document.createElement('td');
+      const upBtn = document.createElement('button');
+      upBtn.innerHTML = '&#8593;';
+      upBtn.onclick = () => {
+        if (line_index > 0) {
+          const prevLine = scriptCode[line_index - 1];
+          scriptCode[line_index - 1] = line;
+          scriptCode[line_index] = prevLine;
+          renderScriptTable();
+        }
+      }
+      upBtn.disabled = line_index === 0;
+      upTd.appendChild(upBtn);
+      tr.appendChild(upTd);
+
+      const downTd = document.createElement('td');
+      const downBtn = document.createElement('button');
+      downBtn.innerHTML = '&#8595;';
+      downBtn.onclick = () => {
+        if (line_index < scriptCode.length - 1) {
+          const nextLine = scriptCode[line_index + 1];
+          scriptCode[line_index + 1] = line;
+          scriptCode[line_index] = nextLine;
+          renderScriptTable();
+        }
+      }
+      downBtn.disabled = line_index === scriptCode.length - 1;
+      downTd.appendChild(downBtn);
+      tr.appendChild(downTd);
+
+      const delTd = document.createElement('td');
+      const delBtn = document.createElement('button');
+      delBtn.innerHTML = '&#10006;';
+      delBtn.onclick = () => {
+        const index = Array.from(tbody.children).indexOf(tr);
+        scriptCode.splice(index, 1);
+        tr.remove();
+      }
+      delTd.appendChild(delBtn);
+      tr.appendChild(delTd);
+
+      tbody.appendChild(tr);
+    }
+  }
+
+  function addScriptLine() {
+    scriptCode = scriptCode || [];
+    scriptCode.push({type: 0, code: 0});
+    renderScriptTable();
+  }
+
+
+  async function loadScriptEditor() {
+    const name = document.getElementById('scriptList').value;
+    if (!name) return;
+    const res = await apiFetch('/api/scripts/download/' + name);
+    const raw = await res.json();
+    document.getElementById('scriptName').value = raw.name;
+    document.getElementById('scriptId').value = raw.file.split('.')[0];
+    scriptCode = raw.actions;
+    renderScriptTable();
+  }
+
+  async function saveScript() {
+    const name = document.getElementById('scriptName').value.trim();
+    const id = parseInt(document.getElementById('scriptId').value.trim());
+    const body = [];
+    for (const line of scriptCode) {
+      const type = parseInt(line.type);
+      const code = parseInt(line.code);
+      const sub_code = parseInt(line.sub_code) || 0;
+
+      body.push(type + ':' + code + ':' + sub_code);
+    }
+    if (!name || !body || !id) return alert_message('Введите имя и строки скрипта');
+    const res = await apiFetch('/api/scripts/upload', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: `name=${encodeURIComponent(name)}&id=${id}&body=${encodeURIComponent(body.join(';'))}`
+    });
+    if (res.ok) {
+      alert_message('Скрипт сохранён');
+      fetchScriptsList();
+    } else {
+      alert_message('Ошибка сохранения скрипта');
+    }
+  }
+
+  async function deleteScript() {
+    const name = document.getElementById('scriptList').value;
+    if (!name) return;
+    if (!confirm('Удалить скрипт ' + name + '?')) return;
+    const res = await apiFetch('/api/scripts/delete', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: `name=${encodeURIComponent(name)}`
+    });
+    if (res.ok) {
+      alert_message('Удалено');
+      fetchScriptsList();
+    } else {
+      alert_message('Ошибка удаления');
+    }
+  }
+
+  function downloadScript() {
+    const name = document.getElementById('scriptList').value;
+    if (!name) return;
+    window.open('/api/scripts/download/' + name, '_blank');
+  }
+
+  //////////////////////// SCRIPTS end ////////////////////////
+
+  async function loadWiFi() {
+    const res = await apiFetch('/api/wifi');
+    const data = await res.json();
+    document.getElementById('ssid').value = data.ssid;
+    document.getElementById('password').value = data.password;
+    document.getElementById('mode').value = data.mode ? 1 : 0;
+  }
+
+  async function loadIRCodes() {
+    const res = await apiFetch('/api/ir/list');
+    irCodes = await res.json();
+    renderIRCodes();
+  }
+
+  function item_rang(count, prefix) {
+    const arr = [];
+    for (let i = 0; i < count; i++) {
+      arr.push([prefix + (i + 1), i, null]);
+    }
+    return arr;
+  }
+
+  // function getSelectEl(options, selectedValue, reverse = false, has_custom = false) {
+  function getControl(selectedValue, isScript = false) {
+    const out_el_list = []
+
+    const actionTypeSelect = document.createElement('td');
+    const select = document.createElement('select');
+    let targetTypesDict = {}
+    targetTypes.forEach((item) => {
+      const [label, i, has_custom, display, second_input] = item;
+      const option = document.createElement('option');
+      if (isScript && display === 2) {
+        return
+      }
+      if (!isScript && display === 1) {
+        return
+      }
+      targetTypesDict[i] = item
+      option.value = i;
+      option.innerText = label;
+      if (selectedValue.type === i) {
+        option.selected = true;
+      }
+      select.appendChild(option);
+    });
+    actionTypeSelect.appendChild(select);
+    out_el_list.push(actionTypeSelect);
+
+    const codeSelect = document.createElement('td');
+    out_el_list.push(codeSelect);
+
+    const select_el = document.createElement('select');
+    const input_el = document.createElement('input');
+    codeSelect.appendChild(select_el);
+    codeSelect.appendChild(input_el);
+    input_el.type = 'number';
+    input_el.onchange = () => {
+      selectedValue.code = parseInt(input_el.value);
+    };
+
+    const customTd = document.createElement('td');
+    out_el_list.push(customTd);
+    const customInput = document.createElement('input');
+    customInput.type = 'number';
+    customInput.style.display = 'none';
+    customTd.appendChild(customInput)
+    customInput.onchange = () => {
+      if (targetTypesDict[selectedValue.type][4]) {
+        selectedValue.sub_code = parseInt(customInput.value);
+      } else {
+        selectedValue.code = parseInt(customInput.value);
+      }
+    };
+
+    select_el.onchange = () => {
+      if (targetTypesDict[selectedValue.type][2]) { // наличие кастомного варианта. Клавиатура или мышь
+        selectedValue.sel = select_el.value;
+        if (selectedValue.sel === 'custom') {
+          customInput.style.display = 'inline-block';
+          customInput.value = selectedValue.code;
+        } else {
+          selectedValue.code = parseInt(select_el.value);
+          customInput.style.display = 'none';
+        }
+      } else {
+        selectedValue.code = parseInt(select_el.value);
+      }
+    };
+
+    const options_lists = {
+      1: keyboardCodes.map((item) => [item.name, item.id, item.group]),
+      2: mouseCodes.map((item) => [...item, null]),
+      4: irCodes.map((item) => [`${item.name} (${item.slot})`, item.slot, null]),
+      5: item_rang(info.layers, 'Layer #'),
+      6: availableActions.map((item) => [item.name, item.id, null]),
+      9: scriptList.map((item) => [parseInt(item.id.split('.')[0]) + ': ' + item.name, parseInt(item.id.split('.')[0]), null]),
+      10: mediaCodes.map((item) => [item.name, item.id, null]),
+    }
+
+    select.onchange = () => {
+      selectedValue.type = parseInt(select.value);
+      if (selectedValue.type === 0 && !isScript) {
+        input_el.style.display = 'none';
+        select_el.style.display = 'none';
+        customInput.style.display = 'none';
+      } else if (options_lists[selectedValue.type] !== undefined) {
+        select_el.style.display = 'inline-block';
+        input_el.style.display = 'none';
+        customInput.style.display = 'none';
+
+        const options = options_lists[selectedValue.type] || []
+
+        select_el.innerText = '';
+        let current_group = null
+        let group_root = null
+        for (let [text, val, group] of options) {
+          if (current_group !== group) {
+            current_group = group
+            if (current_group !== null) {
+              group_root = document.createElement('optgroup');
+              group_root.label = group;
+              group_root.innerText = group;
+              select_el.appendChild(group_root);
+            } else {
+              group_root = null
+            }
+          }
+          const option = document.createElement('option');
+          option.value = val;
+          option.innerText = text;
+          if (group_root !== null) {
+            group_root.appendChild(option);
+          } else {
+            select_el.appendChild(option);
+          }
+        }
+        if (targetTypesDict[selectedValue.type][2]) {
+          const customOption = document.createElement('option');
+          customOption.value = 'custom';
+          customOption.innerText = 'Кастомный';
+          if (selectedValue.sel === 'custom') {
+            customOption.selected = true;
+          }
+          select_el.appendChild(customOption);
+          const pr_sel = selectedValue.sel
+          selectedValue.sel = findCode(selectedValue.code, options);
+          select_el.value = selectedValue.sel;
+          select_el.onchange()
+        }
+      } else {
+        select_el.style.display = 'none';
+        customInput.style.display = targetTypesDict[selectedValue.type][4] ? 'inline-block' : 'none';
+        if (targetTypesDict[selectedValue.type][4]) {
+          customInput.value = selectedValue.sub_code
+        }
+        input_el.value = selectedValue.code
+        input_el.style.display = 'inline-block';
+      }
+    };
+
+    select.onchange()
+    return out_el_list;
+  }
+
+  function findCode(code, options, reverse = false) {
+    for (let [key, value] of options) {
+      if (reverse) {
+        if (key === code) {
+          return key;
+        }
+      } else {
+        if (value === code) {
+          return value;
+        }
+      }
+    }
+    return 'custom';
+  }
+
+  function renderButtonConfig() {
+    const container = document.getElementById('buttonsTableContainer');
+    const layer = parseInt(document.getElementById('layerSelect').value);
+    container.innerHTML = '';
+    const table = document.createElement('table');
+    const header = document.createElement('tr');
+    header.className = 'btnHeader';
+    const columns = [
+      {name: 'btnIndex', title: '#'},
+      {name: 'checkbox', title: ''},
+      {name: 'color', title: 'Цвет'},
+      {name: 'action', title: 'Действие'},
+      {name: 'type', title: 'Тип'},
+      {name: 'code', title: 'Код', colspan: 2},
+    ]
+    const checkboxAll = document.createElement('input');
+    for (const col of columns) {
+      const th = document.createElement('th');
+      th.innerText = col.title;
+      if (col.colspan) {
+        th.setAttribute('colspan', col.colspan);
+      }
+      if (col.name === 'checkbox') {
+        checkboxAll.type = 'checkbox';
+        checkboxAll.className = 'btnCheckbox all';
+        checkboxAll.onchange = () => {
+          const checkboxes = document.querySelectorAll('.btnCheckbox');
+          checkboxes.forEach((el) => {
+            if (el.classList.contains('all')) return;
+            el.checked = checkboxAll.checked;
+          });
+        };
+        th.appendChild(checkboxAll);
+      }
+      if (col.name === 'color') {
+        const colorInput = document.createElement('input');
+        colorInput.type = 'color';
+        colorInput.value = '#ffffff';
+        colorInput.setAttribute('list', 'color_list');
+        colorInput.onchange = () => {
+          const checkboxes = document.querySelectorAll('.btnCheckbox');
+          checkboxes.forEach((el) => {
+            if (el.classList.contains('all')) return;
+            if (el.checked) {
+              const btn_el = el.closest('tr').querySelector('.btnIndex');
+              if (!btn_el) return;
+              const btnIndex = parseInt(btn_el.innerText);
+              buttonsConfig[layer][btnIndex].color = colorInput.value;
+              updateLayoutButtonColor(layer, btnIndex, colorInput.value);
+              const color = document.querySelector(`input[btnIndex="${btnIndex}"][type="color"]`);
+              if (color) {
+                color.value = colorInput.value;
+              }
+
+            }
+          });
+        };
+        th.appendChild(colorInput);
+      }
+      header.appendChild(th);
+    }
+    table.appendChild(header);
+
+    buttonsConfig[layer].forEach((btnObj, idx) => {
+      let tr = document.createElement('tr');
+      const td = document.createElement('td');
+      const actionSel = actionSelected.length ? actionSelected : actionTypes
+      td.innerText = idx;
+      td.setAttribute('rowspan', actionSel.length);
+      td.className = 'btnIndex';
+      tr.appendChild(td);
+
+      const checkboxTd = document.createElement('td');
+      checkboxTd.style.textAlign = 'center';
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.className = 'btnCheckbox';
+      checkbox.setAttribute('btnIndex', idx);
+      checkbox.onchange = () => {
+        const checkboxes = document.querySelectorAll('.btnCheckbox:not(.all)');
+        const allChecked = Array.from(checkboxes).every((el) => el.checked);
+        const allUnchecked = Array.from(checkboxes).every((el) => !el.checked);
+        checkboxAll.checked = allChecked;
+        checkboxAll.indeterminate = !allChecked && !allUnchecked;
+      };
+      checkboxTd.appendChild(checkbox);
+      tr.appendChild(checkboxTd);
+
+      const colorTd = document.createElement('td');
+      colorTd.setAttribute('rowspan', actionSel.length);
+      const colorInput = document.createElement('input');
+      colorInput.type = 'color';
+      colorInput.value = typeof (btnObj.color) == 'string' && btnObj.color[0] === '#' ? btnObj.color : '#' + ('00000' + (btnObj.color || 0).toString(16)).slice(-6);
+      colorInput.setAttribute('list', 'color_list');
+      colorInput.setAttribute('btnIndex', idx);
+      colorInput.onchange = () => {
+        btnObj.color = colorInput.value;
+        updateLayoutButtonColor(layer, idx, btnObj.color);
+      };
+      colorTd.appendChild(colorInput);
+      tr.appendChild(colorTd);
+
+
+      for (const action of actionSel) {
+        const actionType = document.createElement('td');
+        actionType.innerText = action;
+        actionType.className = 'btnToDo';
+        tr.appendChild(actionType);
+
+        const b = btnObj[action];
+        for (const el of getControl(b)) {
+          tr.appendChild(el);
+        }
+        table.appendChild(tr);
+        tr = document.createElement('tr');
+      }
+    });
+    container.appendChild(table);
+    renderLayout();
+  }
+
+  async function loadButtons() {
+    const res = await apiFetch('/api/buttons');
+    buttonsConfig = await res.json();
+    layerCount = buttonsConfig.length;
+    const sel = document.getElementById('layerSelect');
+    sel.innerHTML = '';
+    for (let i = 0; i < layerCount; i++) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.innerText = 'Слой ' + i;
+      sel.appendChild(opt);
+    }
+
+    actionSelect = document.getElementById('actionSelect');
+    actionSelect.innerHTML = '';
+    for (const action of actionTypes) {
+      const label = document.createElement('label');
+      const span = document.createElement('span');
+      span.innerText = action;
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = actionSelected.includes(action);
+      checkbox.onchange = () => {
+        if (checkbox.checked) {
+          actionSelected.push(action);
+        } else {
+          actionSelected = actionSelected.filter(a => a !== action);
+        }
+        renderButtonConfig();
+      };
+      label.appendChild(checkbox);
+      label.appendChild(span);
+      actionSelect.appendChild(label);
+    }
+
+    setTimeout(renderButtonConfig, 100);
+  }
+
+  function ir_capture(ir) {
+    let data = {
+      freq: ir.freq,
+      timeout: 5000,
+      name: ir.name,
+    }
+    if (ir.slot !== "" && ir.slot !== undefined) {
+      data.slot = ir.slot;
+    }
+    apiFetch('/api/ir/capture', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data)
+    }).then(res => {
+      if (res.ok) {
+        captureInterval = setInterval(() => {
+          apiFetch('/api/ir/status').then(res => {
+            if (res.ok) {
+              res.json().then(data => {
+                if (data.status === "captured") {
+                  ir.slot = data.slot;
+                  ir.freq = data.freq;
+                  ir.name = data.name;
+                  ir.raw = data.raw;
+                  clearInterval(captureInterval)
+                  renderIRCodes();
+                  alert_message('IR-код считан');
+                } else if (data.status === "timeout") {
+                  clearInterval(captureInterval)
+                  alert_message('Время ожидания истекло');
+                } else if (data.status === "no_empty_slots") {
+                  clearInterval(captureInterval)
+                  alert_message('Нет свободных слотов');
+                } else if (data.status === "error") {
+                  clearInterval(captureInterval)
+                  alert_message('Ошибка чтения IR-кода');
+                }
+              });
+            }
+          });
+        }, 1000);
+      } else {
+        alert_message('Ошибка чтения IR-кода');
+      }
+    });
+  }
+
+  function ir_send(ir) {
+    if (ir.slot === "" || ir.slot === undefined) {
+      return
+    }
+    apiFetch('/api/ir/send', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: ir.slot
+    }).then(res => {
+      if (res.ok) {
+        alert_message('IR-код отправлен');
+      } else {
+        alert_message('Ошибка отправки IR-кода');
+      }
+    });
+  }
+
+  function renderIRCodes() {
+    const tbody = document.querySelector('#irTable tbody');
+    tbody.innerHTML = '';
+    irCodes.forEach((ir, i) => {
+      let captureInterval = null;
+      const tr = document.createElement('tr');
+      const slotTdIndex = document.createElement('td');
+      slotTdIndex.innerText = i + 1;
+      tr.appendChild(slotTdIndex);
+
+      const slotTd = document.createElement('td');
+      slotTd.innerText = ir.slot;
+      tr.appendChild(slotTd);
+
+      const nameTd = document.createElement('td');
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.value = ir.name;
+      nameInput.onchange = () => {
+        ir.name = nameInput.value;
+      };
+      nameTd.appendChild(nameInput);
+      tr.appendChild(nameTd);
+
+      const freqTd = document.createElement('td');
+      const freqInput = document.createElement('select');
+      for (const freq of freqList) {
+        const option = document.createElement('option');
+        option.value = freq;
+        option.innerText = freq;
+        if (ir.freq === freq) {
+          option.selected = true;
+        }
+        freqInput.appendChild(option);
+      }
+      freqInput.onchange = () => {
+        ir.freq = parseInt(freqInput.value);
+      };
+      freqTd.appendChild(freqInput);
+      tr.appendChild(freqTd);
+
+      const rawTd = document.createElement('td');
+      const rawInput = document.createElement('input');
+      rawInput.type = 'text';
+      rawInput.value = ir.raw;
+      rawInput.onchange = () => {
+        ir.raw = rawInput.value;
+      };
+      rawTd.appendChild(rawInput);
+      tr.appendChild(rawTd);
+
+
+      const readTd = document.createElement('td');
+      const readButton = document.createElement('button');
+      readButton.innerText = 'Считать';
+      readButton.onclick = () => {
+        ir_capture(ir);
+      }
+      readTd.appendChild(readButton);
+      tr.appendChild(readTd);
+
+      const delTd = document.createElement('td');
+      const delButton = document.createElement('button');
+      delButton.innerText = 'Удалить';
+      delButton.onclick = () => {
+        removeIRCode(i);
+      };
+      if (ir.slot !== "" && ir.slot !== undefined) {
+        delTd.appendChild(delButton);
+      }
+      tr.appendChild(delTd);
+
+      // /api/ir/send send if has slot
+      const sendTd = document.createElement('td');
+      const sendButton = document.createElement('button');
+      sendButton.innerText = 'Отправить';
+      sendButton.onclick = () => {
+        ir_send(ir);
+      };
+      if (ir.slot !== "" && ir.slot !== undefined) {
+        sendTd.appendChild(sendButton);
+      }
+      tr.appendChild(sendTd);
+
+      // "/api/ir/download/*", HTTP_GET
+      const downloadTd = document.createElement('td');
+      const downloadButton = document.createElement('button');
+      downloadButton.innerText = 'Скачать';
+      downloadButton.onclick = () => {
+        const a = document.createElement('a');
+        a.href = '/api/ir/download/' + ir.slot;
+        a.download = ir.slot;
+        a.click();
+      };
+      if (ir.slot !== "" && ir.slot !== undefined) {
+        downloadTd.appendChild(downloadButton);
+      }
+      tr.appendChild(downloadTd);
+
+      tbody.appendChild(tr)
+    });
+  }
+
+  function addIRCode() {
+    irCodes.push({slot: "", name: "", freq: 38, raw: ""});
+    renderIRCodes();
+  }
+
+  function removeIRCode(index) {
+    apiFetch('/api/ir/delete', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: irCodes[index].slot
+    }).then(res => {
+      if (res.ok) {
+        irCodes.splice(index, 1);
+        renderIRCodes();
+      } else {
+        alert_message('Ошибка удаления IR-кода');
+      }
+    });
+  }
+
+  async function saveWiFi() {
+    const ssid = document.getElementById('ssid').value;
+    const password = document.getElementById('password').value;
+    const mode = document.getElementById('mode').value;
+    await apiFetch('/api/wifi', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: `ssid=${ssid}&password=${password}&mode=${mode}`
+    });
+    alert_message("Wi-Fi сохранён. Устройство будет перезапущено.");
+  }
+
+  async function saveButtons() {
+    // data json to key:<layout>:<bnt id>;color:#ff0000;click:<type>:<code>;double:<type>:<code>|key:<layout>:<bnt id>;color:#ff0000;click:<type>:<code>
+    const data = {};
+    buttonsConfig.forEach((layer, i) => {
+      layer.forEach((btn, j) => {
+        const key = `${i}:${j}`;
+        // convert hex color to int
+        const color = typeof btn.color == 'string' && btn.color[0] === '#' ? parseInt(btn.color.replace('#', ''), 16) : btn.color;
+        data[key] = {color};
+        actionSelected.forEach(action => {
+          if (btn[action]) {
+            data[key][action] = btn[action].type + ':' + btn[action].code + ':' + (btn[action].sub_code || 0);
+          }
+        });
+      });
+    });
+    const out_data = Object.entries(data).map(([key, value]) => {
+      return ['key:' + key].concat(Object.entries(value).map(([k, v]) => `${k}:${v}`)).join(';');
+    }).join('|');
+    apiFetch('/api/buttons', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: out_data
+    }).then(res => {
+      if (res.ok) {
+        alert_message("Конфигурация кнопок сохранена.");
+      } else {
+        alert_message("Ошибка сохранения конфигурации кнопок.");
+      }
+    }).catch(err => {
+      console.error(err);
+      alert_message("Ошибка сохранения конфигурации кнопок.");
+    });
+  }
+
+  async function fetchInfo() {
+    const res = await apiFetch('/api/info');
+    info = await res.json();
+  }
+
+
+  async function loadActions() {
+    try {
+      const res = await apiFetch('/api/actions');
+      availableActions = await res.json();
+    } catch (e) {
+      availableActions = [];
+    }
+  }
+
+  async function loadKeyboardCodes() {
+    const res = await apiFetch('/api/keycodes');
+    keyboardCodes = await res.json();
+  }
+
+  async function loadMediaCodes() {
+    const res = await apiFetch('/api/media');
+    mediaCodes = await res.json();
+  }
+
+  async function testColor() {
+    const color = document.getElementById('colorInputColor').value;
+    const btnIndex = document.getElementById('colorInput').value;
+    await apiFetch('/api/led/set', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: `index=${btnIndex}&color=${color}`
+    }).then(res => {
+      if (res.ok) {
+        alert_message('Цвет установлен');
+      } else {
+        alert_message('Ошибка установки цвета');
+      }
+    });
+  }
+
+
+  async function init() {
+    setTimeout(async () => {
+      await fetchInfo();
+      await loadWiFi();
+      await loadActions();
+      await loadButtons();
+      await loadIRCodes();
+      await loadLayout();
+      await fetchScriptsList();
+      await loadKeyboardCodes();
+      await loadMediaCodes();
+    }, 200);
+  }
+
+  window.addEventListener('DOMContentLoaded', init);
+  // click h2 to toggle section
+  window.addEventListener('click', (e) => {
+    if (e.target.tagName === 'H2') {
+      const section = e.target.parentElement;
+      section.classList.toggle('open');
+      const body = section.querySelector('.section_body');
+      body.classList.toggle('open');
+    }
+  });
+</script>
+
+</body>
+
+</html>

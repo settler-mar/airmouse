@@ -1,0 +1,9 @@
+.pio
+.vscode/*
+
+src_*
+.idea
+data_source/mock
+data_source/wifi.bin
+data/*
+src.zip

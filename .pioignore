@@ -1,0 +1,4 @@
+data/moc/
+data/.idea
+
+sdkconfig.*
