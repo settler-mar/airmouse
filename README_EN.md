@@ -61,7 +61,7 @@ ESP32 AirMouse — a project implementing a wireless air mouse device.
 | Page Up       | `GPIO34` | Keyboard        |
 | Tab           | `GPIO17` | Keyboard        |
 | Fn            | `GPIO0`  | Both            |
-| Tilt Wake     | `GPIO36` | Wake-up sensor  |
+| Tilt Wake     | `GPIO36` | Wake-up sensor and motion detection (mercury tilt sensor 102)  |
 
 ### 🌈 WS2812
 | Purpose           | Pin      | Comment         |
@@ -82,16 +82,16 @@ ESP32 AirMouse — a project implementing a wireless air mouse device.
 | Status                      | Color      | Effect             | Timeout (ms) | Source   | Description            |
 |-----------------------------|------------|---------------------|--------------|----------|------------------------|
 | BATTERY_CHARGING            | 🔵 #0000FF | Fade (2 sec)       | 0            | BATTERY  | Charging               |
-| BATTERY_FULL                | 🟢 #00FF00 | None               | 5000         | BATTERY  | Fully charged          |
+| BATTERY_FULL                | 🟢 #00FF00 | -                  | 5000         | BATTERY  | Fully charged          |
 | BATTERY_NEADS_CHARGE        | 🟡 #FFFF00 | Blink (500 ms)     | 30000        | BATTERY  | Needs charging         |
 | BATTERY_LOW                 | 🔴 #FF0000 | Blink (500 ms)     | 0            | BATTERY  | Low battery            |
 | NO_BLE_CONNECTION           | 🔵 #3300EE | Fade (1 sec)       | 0            | BLE      | BLE not connected      |
-| BLE_CONNECTED               | 🟣 #4400FF | None               | 5000         | BLE      | BLE connected          |
-| WIFI_AP_START               | 🟠 #FFA500 | None               | 3000         | WIFI     | Wi-Fi AP mode          |
+| BLE_CONNECTED               | 🟣 #4400FF | -                  | 5000         | BLE      | BLE connected          |
+| WIFI_AP_START               | 🟠 #FFA500 | -                  | 3000         | WIFI     | Wi-Fi AP mode          |
 | WIFI_CONNECTING             | 🟡 #FFFF00 | Fade (1 sec)       | 0            | WIFI     | Connecting to Wi-Fi    |
-| WIFI_CONNECTED              | 🔵 #00FFFF | None               | 5000         | WIFI     | Wi-Fi connected        |
+| WIFI_CONNECTED              | 🔵 #00FFFF | -                  | 5000         | WIFI     | Wi-Fi connected        |
 | IR_LEARN                    | 🟣 #FF00FF | Blink (200 ms)     | 0            | IR       | IR learning mode       |
-| IR_LEARN_END                | 🟣 #FF00FF | None               | 5000         | IR       | IR learning complete   |
+| IR_LEARN_END                | 🟣 #FF00FF | -                  | 5000         | IR       | IR learning complete   |
 
 ---
 
@@ -123,3 +123,16 @@ git clone https://github.com/settler-mar/airmouse.git
 2. Configure src/config.h
 
 3. Flash firmware via PlatformIO.
+
+---
+
+## 📶 Wi-Fi Mode
+
+**EN:**  
+You can enter **Wi-Fi mode** either by assigning it as an action to a button or by using a dedicated "Wi-Fi mode" pin (`WIFI_MODE_RUN_PIN`, default: `GPIO17`).
+
+- **Exit:**  
+  To exit Wi-Fi mode, simply restart the device using the reset button.
+
+- **AP mode:**  
+  If network parameters are not configured, or if the device cannot connect to a saved network within 30 seconds, it will automatically start in **Access Point (AP) mode**.

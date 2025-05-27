@@ -12,3 +12,4 @@ void ip5306_loop();
 void power_off();
 void setSleepEnabled(bool enabled);
 void handle_power_status_api(AsyncWebServer &server);
+String ip5306_state();

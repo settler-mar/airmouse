@@ -23,6 +23,24 @@ static uint8_t *mcp_gpiob;
 // static uint8_t cachedStates[32];
 static size_t cachedCount = 0;
 
+uint8_t get_mcp_count()
+{
+  return MCP_COUNT;
+}
+
+uint8_t get_mcp_addr(uint8_t chipIndex)
+{
+  if (chipIndex < MCP_COUNT)
+    return MCP[chipIndex];
+  return 0xFFFF; // неверный индекс
+}
+uint8_t get_mcp_initialized(uint8_t chipIndex)
+{
+  if (chipIndex < MCP_COUNT)
+    return mcp_initialized[chipIndex] ? 1 : 0;
+  return 0; // неверный индекс
+}
+
 void mcp_write_reg(uint8_t addr, uint8_t reg, uint8_t val)
 {
   Wire.beginTransmission(addr);

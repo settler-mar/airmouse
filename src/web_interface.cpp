@@ -15,17 +15,20 @@
 #include "helpers.h"
 #include "led_service.h"
 #include "ip5306.h"
+#include "sleep_manager.h"
+#include "mcp_handler.h"
 
 AsyncWebServer server(80);
 bool wifi_enabled = false;
 bool wifi_connected = false;
 bool wifi_waiting_connect = false;
+unsigned long wifi_connect_start_time = 0;
 
 void wifi_start()
 {
   if (wifi_enabled)
     return;
-
+  setSleepEnabled(false); // Отключаем sleep при запуске Wi-Fi
   ble_stop();
   if (!get_wifi_mode())
   {
@@ -36,6 +39,7 @@ void wifi_start()
 #endif
     wifi_waiting_connect = true;
     wifi_connected = false;
+    wifi_connect_start_time = millis();
     LED_STATUS_WIFI_CONNECTING;
   }
   else
@@ -58,6 +62,7 @@ void wifi_stop()
   WiFi.mode(WIFI_OFF);
   server.end();
   ble_start();
+  setSleepEnabled(true);
   wifi_enabled = false;
 #if DEBUG
   Serial.println("[WIFI] Wi-Fi OFF");
@@ -122,8 +127,26 @@ void setup_web_interface()
   esp_chip_info(&chip_info);
 
   String json = "{";
+  json += "\"firmware_version\":\"" + String(FIRMWARE_VERSION) + "\",";
   json += "\"layers\":" + String(MAX_LAYERS) + ",";
-  json += "\"keys\":" + String(NUM_DEFAULT_KEYS) + ",";
+  json += "\"keys_count\":" + String(NUM_DEFAULT_KEYS) + ",";
+  json += "\"mcp23017_count\":" + String(get_mcp_count()) + ",";
+  json += "\"mcp23017_init\":{";
+  for (size_t i = 0; i < get_mcp_count(); i++) {
+    if (i > 0) json += ",";
+    json += "\"" + String(get_mcp_addr(i), HEX) + "\":" + String(get_mcp_initialized(i) ? "true" : "false");
+  }
+  json += "},";
+  json+= "\"keys_config\":[";
+  const auto &keys_config = get_keys_config();
+  for (size_t i = 0; i < NUM_DEFAULT_KEYS; i++) {
+    if (i > 0) json += ",";
+    json += "{\"index\":" + String(i) + ",\"source\":" + String(keys_config[i].source) +
+            ",\"source_index\":" + String(keys_config[i].sourceIndex) +
+            ",\"side\":" + String(keys_config[i].side) + ",\"code\":" + String(keys_config[i].pin) +
+            ",\"led_index\":" + String(keys_config[i].ledIndex) + "}";
+  }
+  json += "],";
   json += "\"ir_slots\":" + String(MAX_IR_CODES) + ",";
   json += "\"chip\":\"ESP32\",";
   json += "\"chip_model\":\"" + String((chip_info.model == CHIP_ESP32 ? "ESP32" :
@@ -131,18 +154,34 @@ void setup_web_interface()
                                         chip_info.model == CHIP_ESP32S3 ? "ESP32-S3" :
                                         chip_info.model == CHIP_ESP32C3 ? "ESP32-C3" :
                                         "UNKNOWN")) + "\",";
+  json += "\"chip_package\":\"" + String(ESP.getChipModel()) + "\",";
   json += "\"cores\":" + String(chip_info.cores) + ",";
   json += "\"revision\":" + String(chip_info.revision) + ",";
+  json += "\"features\":{";
+  json += "\"embedded_flash\":" + String((chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "true" : "false") + ",";
+  json += "\"wifi_bgn\":" + String((chip_info.features & CHIP_FEATURE_WIFI_BGN) ? "true" : "false") + ",";
+  json += "\"bluetooth_le\":" + String((chip_info.features & CHIP_FEATURE_BLE) ? "true" : "false") + ",";
+  json += "\"bluetooth_classic\":" + String((chip_info.features & CHIP_FEATURE_BT) ? "true" : "false") + ",";
+  json += "\"ieee802154\":" + String((chip_info.features & CHIP_FEATURE_IEEE802154) ? "true" : "false") + ",";
+  json += "\"embedded_psram\":" + String((chip_info.features & CHIP_FEATURE_EMB_PSRAM) ? "true" : "false") + "";
+  json += "},";
+  json += "\"wifi_ssid\":\"" + get_wifi_ssid() + "\",";
+  json += "\"wifi_mode\":" + String(get_wifi_mode()) + ",";
+  json += "\"wifi_ip\":\"" + WiFi.localIP().toString() + "\",";
+  json += "\"wifi_mac\":\"" + WiFi.macAddress() + "\",";
+  json += "\"wifi_signal_strength\":" + String(WiFi.RSSI()) + ",";
   json += "\"flash_size\":" + String(spi_flash_get_chip_size() / 1024) + ",";
-  // json += "\"flash_speed\":" + String(spi_flash_get_speed() / 1000000) + ",";
+  json += "\"flash_speed\":" + String(ESP.getFlashChipSpeed()) + ",";
   json += "\"heap_free\":" + String(ESP.getFreeHeap()) + ",";
   json += "\"heap_total\":" + String(ESP.getHeapSize()) + ",";
   json += "\"sketch_size\":" + String(ESP.getSketchSize()) + ",";
   json += "\"sketch_free_space\":" + String(ESP.getFreeSketchSpace()) + ",";
+  json += "\"sdk_version\":\"" + String(ESP.getSdkVersion()) + "\",";
   json += "\"build\":\"" __DATE__ " " __TIME__ "\"";
   json += ",\"leds_count\":" + String(NUM_WS_LEDS) + ",";
   json += "\"leds_brightness\":" + String(LED_BRIGHTNESS) + ",";
-  json += "\"status_led_index\":\"" + String(LED_STATUS_INDEX) + "\"";
+  json += "\"status_led_index\":" + String(LED_STATUS_INDEX) + ",";
+  json += ip5306_state(); // добавляем состояние питания
   json += "}";
 
   request->send(200, "application/json", json); });
@@ -398,6 +437,7 @@ void web_loop()
   if (wifi_waiting_connect)
   {
     bool is_connected = WiFi.status() == WL_CONNECTED;
+
     if (is_connected != wifi_connected)
     {
 #if DEBUG
@@ -416,6 +456,22 @@ void web_loop()
         WiFi.disconnect();
         WiFi.begin(get_wifi_ssid().c_str(), get_wifi_password().c_str());
       }
+    }
+
+    // === Добавляем таймаут для перехода в AP ===
+    if (!wifi_connected && millis() - wifi_connect_start_time > WIFI_CONNECT_TIMEOUT_MS)
+    {
+#if DEBUG
+      Serial.println("[WIFI] Connection timeout. Switching to AP mode...");
+#endif
+      WiFi.disconnect(true);
+      WiFi.mode(WIFI_AP);
+      WiFi.softAP(get_wifi_ssid().c_str(), get_wifi_password().c_str());
+      wifi_waiting_connect = false;
+      LED_STATUS_WIFI_AP_START;
+#if DEBUG
+      Serial.printf("[WIFI] AP started: SSID=%s IP=%s\n", get_wifi_ssid().c_str(), WiFi.softAPIP().toString().c_str());
+#endif
     }
   }
 }

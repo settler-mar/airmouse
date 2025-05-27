@@ -254,15 +254,18 @@ void power_off()
   }
 }*/
 
-void handle_power_status_api(AsyncWebServer &server)
+String ip5306_state()
 {
-  server.on("/led_status", HTTP_GET, [](AsyncWebServerRequest *request)
-            {String json = "{";
-  json += "\"battery_level\":" + String(battery_level) + ",";
+  String json = "\"battery_level\":" + String(battery_level) + ",";
   json += "\"was_charging\":" + String(was_charging ? "true" : "false") + ",";
   json += "\"needs_charge\":" + String(needs_charge_called ? "true" : "false") + ",";
   json += "\"ip5306_available\":" + String(ip5306_available ? "true" : "false") + ",";
   json += "\"charging_data_available\":" + String(has_charging_data ? "true" : "false");
-  json += "}";
-            request->send(200, "application/json", json); });
+  return json;
+}
+
+void handle_power_status_api(AsyncWebServer &server)
+{
+  server.on("/led_status", HTTP_GET, [](AsyncWebServerRequest *request)
+            { request->send(200, "application/json", "{" + ip5306_state() + "}"); });
 }

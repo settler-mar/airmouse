@@ -1,6 +1,8 @@
 #pragma once
 #include <Arduino.h>
 
+#define FIRMWARE_VERSION "1.0.0" // Версия прошивки
+
 // === Типы сторон ===
 enum Side
 {

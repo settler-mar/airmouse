@@ -170,7 +170,7 @@
       }
 
       .section .section_body.open {
-          max-height: 2000px;
+          max-height: 3000px;
           transition: max-height 0.3s linear;
       }
 
@@ -218,6 +218,37 @@
           box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       }
 
+      #infoContent table {
+          border-collapse: collapse;
+          margin: 10px 0;
+          background: #fff;
+      }
+
+      #infoContent th,
+      #infoContent td {
+          border: 1px solid #ccc;
+          padding: 0px 8px;
+      }
+
+      #infoContent th {
+          background: #eee;
+      }
+
+      #infoContent h3 {
+          margin-top: 15px;
+          background: #444;
+          color: #fff;
+          padding: 5px 10px;
+          border-radius: 3px;
+      }
+
+      h2 button {
+          margin-bottom: 0;
+      }
+
+      table button {
+          margin-bottom: 0;
+      }
   </style>
 </head>
 
@@ -263,6 +294,15 @@
       <option value="1">AP</option>
     </select>
     <button onclick="saveWiFi()">Сохранить Wi-Fi</button>
+  </div>
+</div>
+
+<div class="section" id="info-section">
+  <h2>Информация об устройстве
+    <button onclick="loadInfo()">🔄 Обновить</button>
+  </h2>
+  <div class="section_body">
+    <div id="infoContent"></div>
   </div>
 </div>
 
@@ -1261,11 +1301,126 @@
     });
   }
 
-  async function fetchInfo() {
+  async function loadInfo() {
     const res = await apiFetch('/api/info');
+    if (!res.ok) {
+      alert_message('Ошибка загрузки информации');
+      return;
+    }
     info = await res.json();
+    const infoDiv = document.getElementById('infoContent');
+
+    let html = '';
+
+    // Группа: Система
+    html += '<h3>Система</h3><table>';
+    html += `<tr><td>Чип</td><td>${info.chip}</td></tr>`;
+    if (info.chip !== info.chip_model) {
+      html += `<tr><td>Модель чипа</td><td>${info.chip_model}</td></tr>`;
+    }
+    html += `<tr><td>Пакет</td><td>${info.chip_package || '-'}</td></tr>`;
+    html += `<tr><td>Ядер</td><td>${info.cores}</td></tr>`;
+    html += `<tr><td>Ревизия</td><td>${info.revision}</td></tr>`;
+    html += `<tr><td>SDK версия</td><td>${info.sdk_version}</td></tr>`;
+    html += `<tr><td>Сборка</td><td>${info.build}</td></tr>`;
+    html += `<tr><td>Прошивка</td><td>${info.firmware_version || '-'}</td></tr>`;
+    html += '</table>';
+
+    // Группа: Память
+    html += '<h3>Память</h3><table>';
+    html += `<tr><td>Heap всего</td><td>${info.heap_total} байт</td></tr>`;
+    html += `<tr><td>Heap свободно</td><td>${info.heap_free} байт</td></tr>`;
+    html += `<tr><td>Размер скетча</td><td>${info.sketch_size} байт</td></tr>`;
+    html += `<tr><td>Свободно под скетч</td><td>${info.sketch_free_space} байт</td></tr>`;
+    html += `<tr><td>Flash размер</td><td>${info.flash_size} KB</td></tr>`;
+    html += `<tr><td>Flash скорость</td><td>${info.flash_speed} Гц</td></tr>`;
+    html += '</table>';
+
+    // Группа: Кнопки и MCP
+    html += '<h3>Кнопки и MCP</h3><table>';
+    html += `<tr><td>Слои</td><td>${info.layers}</td></tr>`;
+    html += `<tr><td>Кнопки</td><td>${info.keys_count}</td></tr>`;
+    html += `<tr><td>Чипы MCP23017</td><td>${info.mcp23017_count}</td></tr>`;
+    html += `<tr><td>MCP init</td><td>${Object.entries(info.mcp23017_init).map(([k, v]) => `ID ${k}: ${v ? 'OK' : 'Ошибка'}`).join('<br>')}</td></tr>`;
+    html += '</table>';
+
+    // Блок: Детализация кнопок
+    html += '<h3>Детали кнопок</h3><table>';
+    html += '<tr><th>Index</th><th>Source</th><th>Source index</th><th>Side</th><th>Code</th><th>LED index</th><th>Тест</th></tr>';
+    const sourceLabels = {0: 'MCP', 1: 'GPIO'};
+    const sideLabels = {0: 'KEYBOARD', 1: 'MOUSE', 2: 'BOTH'};
+    info.keys_config.forEach(btn => {
+      html += `<tr>
+    <td>${btn.index}</td>
+    <td>${sourceLabels[btn.source] || btn.source}</td>
+    <td>${btn.source_index}</td>
+    <td>${sideLabels[btn.side] || btn.side}</td>
+    <td>${btn.code}</td>
+    <td>${btn.led_index}</td>`;
+      if (btn.led_index !== -1) {
+        html += `<td><button onclick="testLed(${btn.led_index})">Отправить тест</button></td>`;
+      } else {
+        html += '<td></td>';
+      }
+      html += '</tr>';
+    });
+    html += '</table>';
+
+    // Группа: Сеть
+    html += '<h3>Wi-Fi</h3><table>';
+    html += `<tr><td>SSID</td><td>${info.wifi_ssid || '-'}</td></tr>`;
+    html += `<tr><td>IP</td><td>${info.wifi_ip || '-'}</td></tr>`;
+    html += `<tr><td>MAC</td><td>${info.wifi_mac || '-'}</td></tr>`;
+    html += `<tr><td>Уровень сигнала</td><td>${info.wifi_signal_strength} dBm</td></tr>`;
+    html += `<tr><td>Режим</td><td>${info.wifi_mode === 1 ? 'AP' : 'STA'}</td></tr>`;
+    html += '</table>';
+
+    // Группа: LED
+    html += '<h3>LED</h3><table>';
+    html += `<tr><td>Количество</td><td>${info.leds_count}</td></tr>`;
+    html += `<tr><td>Яркость</td><td>${info.leds_brightness}</td></tr>`;
+    html += `<tr><td>Индекс статусного LED</td><td>${info.status_led_index === -1 ? 'нет' : info.status_led_index}</td></tr>`;
+    html += '</table>';
+
+    // Группа: IR
+    html += '<h3>IR</h3><table>';
+    html += `<tr><td>Слотов для IR</td><td>${info.ir_slots}</td></tr>`;
+    html += '</table>';
+
+    // Группа: Поддержка
+    html += '<h3>Поддержка</h3><table>';
+    for (const [feat, val] of Object.entries(info.features || {})) {
+      html += `<tr><td>${feat}</td><td>${val ? '✔' : '✖'}</td></tr>`;
+    }
+    html += '</table>';
+
+    // Проверка IP5306
+    if (info.ip5306_available) {
+      html += '<h3>Питание</h3><table>';
+      html += `<tr><td>Уровень батареи</td><td>${info.battery_level}%</td></tr>`;
+      html += `<tr><td>Заряжался</td><td>${info.was_charging ? 'Да' : 'Нет'}</td></tr>`;
+      html += `<tr><td>Нужна зарядка</td><td>${info.needs_charge ? 'Да' : 'Нет'}</td></tr>`;
+      html += `<tr><td>Данные зарядки</td><td>${info.charging_data_available ? 'Доступны' : 'Нет'}</td></tr>`;
+      html += '</table>';
+    }
+
+    infoDiv.innerHTML = html;
   }
 
+  function testLed(index) {
+    const color = document.getElementById('colorInputColor').value;
+    apiFetch('/api/led/set', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: `index=${index}&color=${color}`
+    }).then(res => {
+      if (res.ok) {
+        alert_message(`Цвет ${color} установлен на LED ${index}`);
+      } else {
+        alert_message('Ошибка отправки теста');
+      }
+    });
+  }
 
   async function loadActions() {
     try {
@@ -1305,7 +1460,7 @@
 
   async function init() {
     setTimeout(async () => {
-      await fetchInfo();
+      await loadInfo();
       await loadWiFi();
       await loadActions();
       await loadButtons();

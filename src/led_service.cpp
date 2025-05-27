@@ -107,7 +107,6 @@ void find_next_active_source()
     if (sources[s].color != 0 && sources[s].timeout_ms > 0)
     {
       next = s;
-      resetSleepTimer();
       break;
     }
   }
@@ -130,6 +129,7 @@ void find_next_active_source()
 
   if (next != LED_SOURCE_NONE)
   {
+    resetSleepTimer();
 #if DEBUG
     Serial.printf("[LED] New active source: %d\n", currentSource);
 #endif
@@ -156,11 +156,10 @@ void set_led_status(uint32_t color, uint16_t blink_ms, uint32_t timeout_ms, bool
   Serial.printf("[LED] Source %d updated: color=#%06X, blink=%d, timeout=%d, fade=%d\n",
                 source, color, blink_ms, timeout_ms, fade);
 #endif
-
+  resetSleepTimer();
   if (currentSource == LED_SOURCE_NONE)
   {
     currentSource = source;
-    resetSleepTimer();
     startTimeSource = millis();
 #if DEBUG
     Serial.printf("[LED] New active source: %d\n", currentSource);
@@ -201,6 +200,9 @@ void led_service_loop()
 
   if (active.timeout_ms > 0 && now - startTimeSource >= active.timeout_ms)
   {
+    // Если таймаут истёк, ищем следующий активный источник. Текущий выключаем.
+    Serial.printf("[LED] Source %d timeout expired, switching to next source\n", currentSource);
+    sources[currentSource] = LedStatus(); // Сбрасываем текущий источник
     find_next_active_source();
     return;
   }

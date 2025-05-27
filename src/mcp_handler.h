@@ -10,5 +10,7 @@ void set_mcp_active_side(Side side);                // устанавливае�
 void read_mcp_buttons_tick();                       // обновляет кеш нажатий с MCP (ядро 0)
 Side get_mcp_active_side();                         // возвращает активную сторону (ядро 1)
 bool get_pin_state(uint8_t chipIndex, uint8_t pin); // возвращает состояние пина (ядро 1)
-
-#endif // MCP_HANDLER_H
+uint8_t get_mcp_count();                            // возвращает количество MCP
+uint8_t get_mcp_addr(uint8_t chipIndex);           // возвращает адрес MCP по индексу
+uint8_t get_mcp_initialized(uint8_t chipIndex);         // возвращает состояние активности MCP по индексу
+#endif

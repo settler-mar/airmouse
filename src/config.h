@@ -7,9 +7,10 @@
 #define DEVICE_NAME "Air Mouse+"
 
 // === WIFI ===
-#define WIFI_SSID "AirMouse"      // WIFI SSID точки доступа
-#define WIFI_PASSWORD "123456789" // WIFI пароль точки доступа
-#define WIFI_MODE_RUN_PIN 17      // GPIO пин для выбора режима работы WIFI or BLE
+#define WIFI_SSID "AirMouse"          // WIFI SSID точки доступа
+#define WIFI_PASSWORD "123456789"     // WIFI пароль точки доступа
+#define WIFI_MODE_RUN_PIN 17          // GPIO пин для выбора режима работы WIFI or BLE
+#define WIFI_CONNECT_TIMEOUT_MS 30000 // Таймаут подключения для перехода в режим AP (в мс)
 
 // === Отладка ===
 #define DEBUG 1                  // 0 - отключить отладку, 1 - включить отладку
