@@ -46,7 +46,7 @@ void load_default_config()
       buttonLogic[i][j].holdRelease.type = ACTION_NONE;
       buttonLogic[i][j].release.type = ACTION_NONE;
 
-      buttonColors[0][j] = LED_COLOR_DEFAULT;
+      buttonColors[i][j] = LED_COLOR_DEFAULT;
     }
   }
 }
