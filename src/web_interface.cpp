@@ -224,12 +224,12 @@ void setup_web_interface()
       for (size_t k = 0; k < NUM_DEFAULT_KEYS; k++) {
         const auto &b = logic[l][k];
         json += "{\"click\":{\"type\":" + String(b.click.type) + ",\"code\":" + String(b.click.code) + ",\"sub_code\":" + String(b.click.sub_code) + "},";
-        json += "\"double\":{\"type\":" + String(b.dblclick.type) + ",\"code\":" + String(b.dblclick.code) + ",\"sub_code\":" + String(b.click.sub_code) + "},";
-        json += "\"hold\":{\"type\":" + String(b.hold.type) + ",\"code\":" + String(b.hold.code) + ",\"sub_code\":" + String(b.click.sub_code) + "},";
-        json += "\"holdRepeat\":{\"type\":" + String(b.holdRepeat.type) + ",\"code\":" + String(b.holdRepeat.code) + ",\"sub_code\":" + String(b.click.sub_code) + "},";
-        json += "\"holdRelease\":{\"type\":" + String(b.holdRelease.type) + ",\"code\":" + String(b.holdRelease.code) + ",\"sub_code\":" + String(b.click.sub_code) + "},";
-        json += "\"oneClickHold\":{\"type\":" + String(b.oneClickHold.type) + ",\"code\":" + String(b.oneClickHold.code) + ",\"sub_code\":" + String(b.click.sub_code) + "},";
-        json += "\"release\":{\"type\":" + String(b.release.type) + ",\"code\":" + String(b.release.code) + ",\"sub_code\":" + String(b.click.sub_code) + "},";
+        json += "\"double\":{\"type\":" + String(b.dblclick.type) + ",\"code\":" + String(b.dblclick.code) + ",\"sub_code\":" + String(b.dblclick.sub_code) + "},";
+        json += "\"hold\":{\"type\":" + String(b.hold.type) + ",\"code\":" + String(b.hold.code) + ",\"sub_code\":" + String(b.hold.sub_code) + "},";
+        json += "\"holdRepeat\":{\"type\":" + String(b.holdRepeat.type) + ",\"code\":" + String(b.holdRepeat.code) + ",\"sub_code\":" + String(b.holdRepeat.sub_code) + "},";
+        json += "\"holdRelease\":{\"type\":" + String(b.holdRelease.type) + ",\"code\":" + String(b.holdRelease.code) + ",\"sub_code\":" + String(b.holdRelease.sub_code) + "},";
+        json += "\"oneClickHold\":{\"type\":" + String(b.oneClickHold.type) + ",\"code\":" + String(b.oneClickHold.code) + ",\"sub_code\":" + String(b.oneClickHold.sub_code) + "},";
+        json += "\"release\":{\"type\":" + String(b.release.type) + ",\"code\":" + String(b.release.code) + ",\"sub_code\":" + String(b.release.sub_code) + "},";
         json += "\"color\":" + String(get_button_colors(l,k)) + "}";
         if (k + 1 < NUM_DEFAULT_KEYS) json += ",";
       }
