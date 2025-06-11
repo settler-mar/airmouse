@@ -74,7 +74,7 @@
 #define BATTERY_LEVEL_LOW 5           // Минимальный уровень заряда батареи (в процентах)
 #define BATTERY_LEVEL_NEEDS_CHARGE 20 // Уровень заряда батареи, при котором нужно начать зарядку (в процентах)
 #define IP5306_POLL_INTERVAL 5000     // Интервал опроса IP5306 (в мс)
-#define IP5306_CHARGE_VOLTAGE_SEL 0   // Напреяжение заряда (0 - 4.2V, 1 - 4.3В, 2 - 4.35В, 3 - 4.4В)
+#define IP5306_CHARGE_VOLTAGE_SEL 0   // Напряжение заряда (0 - 4.2V, 1 - 4.3В, 2 - 4.35В, 3 - 4.4В)
 #define IP5306_CHARGE_CURRENT_MA 500  // Ток заряда (в мА, от 100 до 2000 мА. Округляется до ближайших 100 мА в меньшую сторону)
 #define IP5306_AUTO_POWER_ON 1        // Автоматическое включение питания при подключении USB (0 - выключено, 1 - включено)
 #define IP5306_AUTO_CHARGE_CONTROL 1  // Автоматическое управление зарядкой (0 - выключено, 1 - включено)
@@ -129,6 +129,12 @@ const HardwareKeyConfig hardwareKeys[NUM_DEFAULT_KEYS] = {
 #define MOUSE_PRECISION_SCALE 0.4     // коэффициент точности (от 0 до 1)
 #define MOUSE_SIDE_ZONE 0.8           // мертвая зона по оси Z (от 0 до 1)
 // #define MOUSE_SIDE_INVERT             // инвертировать ось Z (если включено, то при наклоне вниз будет работать мышь, а при наклоне вверх — клавиатура)
+
+// === Настройка ориентации датчика ===
+#define MOUSE_INVERT_X 0           // инвертировать ось X
+#define MOUSE_INVERT_Y 0           // инвертировать ось Y
+#define MOUSE_INVERT_Z 0           // инвертировать ось Z (для определения стороны)
+#define MOUSE_SENSOR_ROTATION 0    // поворот датчика: 0, 90, 180 или 270 градусов
 
 #if DEBUG
 #pragma message("[DEBUG ENABLED] config.h loaded with HID + mouse + LED + power")
