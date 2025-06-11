@@ -1,6 +1,6 @@
 # 🚀 ESP32 AirMouse
 
-[🇷🇺 Русская версия](./README_RU.md)
+[🇷🇺 Русская версия](./README.MD)
 
 ESP32 AirMouse — a project implementing a wireless air mouse device.
 
