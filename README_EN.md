@@ -1,6 +1,6 @@
 # 🚀 ESP32 AirMouse
 
-[🇷🇺 Русская версия](./README_RU.md)
+[🇷🇺 Русская версия](./README.MD)
 
 ESP32 AirMouse — a project implementing a wireless air mouse device.
 
@@ -83,7 +83,7 @@ ESP32 AirMouse — a project implementing a wireless air mouse device.
 |-----------------------------|------------|---------------------|--------------|----------|------------------------|
 | BATTERY_CHARGING            | 🔵 #0000FF | Fade (2 sec)       | 0            | BATTERY  | Charging               |
 | BATTERY_FULL                | 🟢 #00FF00 | -                  | 5000         | BATTERY  | Fully charged          |
-| BATTERY_NEADS_CHARGE        | 🟡 #FFFF00 | Blink (500 ms)     | 30000        | BATTERY  | Needs charging         |
+| BATTERY_NEEDS_CHARGE        | 🟡 #FFFF00 | Blink (500 ms)     | 30000        | BATTERY  | Needs charging         |
 | BATTERY_LOW                 | 🔴 #FF0000 | Blink (500 ms)     | 0            | BATTERY  | Low battery            |
 | NO_BLE_CONNECTION           | 🔵 #3300EE | Fade (1 sec)       | 0            | BLE      | BLE not connected      |
 | BLE_CONNECTED               | 🟣 #4400FF | -                  | 5000         | BLE      | BLE connected          |

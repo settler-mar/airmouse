@@ -59,7 +59,10 @@ void processMouseMove()
     return;
 
   float accZ = mpu.getAccZ();
-#ifdef MOUSE_SIDE_INVERT
+#ifdef MOUSE_INVERT_Z
+  accZ = -accZ;
+#elif defined(MOUSE_SIDE_INVERT)
+  // Для обратной совместимости
   accZ = -accZ;
 #endif
 
@@ -105,6 +108,32 @@ void processMouseMove()
   // === Получаем углы наклона по осям X и Y ===
   float angleX = mpu.getAngleX();
   float angleY = mpu.getAngleY();
+
+  // Поворот датчика относительно оси устройства
+#if MOUSE_SENSOR_ROTATION == 90
+  {
+    float t = angleX;
+    angleX = -angleY;
+    angleY = t;
+  }
+#elif MOUSE_SENSOR_ROTATION == 180
+  angleX = -angleX;
+  angleY = -angleY;
+#elif MOUSE_SENSOR_ROTATION == 270
+  {
+    float t = angleX;
+    angleX = angleY;
+    angleY = -t;
+  }
+#endif
+
+  // Инверсия осей
+#ifdef MOUSE_INVERT_X
+  angleX = -angleX;
+#endif
+#ifdef MOUSE_INVERT_Y
+  angleY = -angleY;
+#endif
 
   float dx = angleX - lastAngleX;
   float dy = angleY - lastAngleY;

@@ -197,7 +197,7 @@ void ip5306_update_status()
 
   if (battery_level < BATTERY_LEVEL_NEEDS_CHARGE && !needs_charge_called)
   {
-    LED_STATUS_BATTERY_NEADS_CHARGE;
+    LED_STATUS_BATTERY_NEEDS_CHARGE;
     needs_charge_called = true;
     return;
   }
